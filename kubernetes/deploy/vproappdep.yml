@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: vproapp
-        image: $registry:$TAG
+        image: fazelshah/cicd-kube:latest
         ports:
         - name: vproapp-port
           containerPort: 8080
