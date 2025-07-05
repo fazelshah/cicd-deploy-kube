@@ -1,5 +1,7 @@
 pipeline {
-    agent { label 'slave' }
+    agent any
+    #agent { label 'slave' }
+  
 
     environment {
         registry = "fazelshah/cicd-kube"
@@ -29,9 +31,11 @@ pipeline {
 
         stage('Build and Push') {
             steps {
+                withDockerRegistry([credentialsId: "dockerhub", url: ""]) {
                 sh 'docker build -t $registry:$TAG .'
                 sh 'docker push $registry:$TAG'
             }
+        }
         }
 
         stage('Deploy on Kubernetes') {
