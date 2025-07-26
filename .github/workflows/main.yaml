@@ -11,4 +11,5 @@ jobs:
       - name: testbuild
         run : mvn install
     
-  
+      - name: test
+        run: mvn test
