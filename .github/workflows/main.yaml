@@ -31,15 +31,13 @@ jobs:
           tags: ${{ vars.DOCKERUSERNAME }}/cicd:${{ github.sha }}
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
-      - name: Kubernetes Deployment
-        uses: TanmoySG/k-deploy-action@v0.2.2-alpha
+      - uses: azure/k8s-set-context@v4
         with:
-         kubeconfig: ${{secrets.KUBECONFIG}}
-         namespace: 'default'
+         method: kubeconfig
+         kubeconfig: ${{ secrets.KUBECONFIG }}
       - name: Deploy to Kubernetes
         run: |
-         echo "${{ secrets.KUBECONFIG }}" > kubeconfig
-          export KUBECONFIG=$PWD/kubeconfig
+        
           kubectl apply -f kubernetes/deployment.yaml
           kubectl apply -f kubernetes/service.yaml
       
