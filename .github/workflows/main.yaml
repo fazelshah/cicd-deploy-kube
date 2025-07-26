@@ -1,0 +1,11 @@
+name:  complete cicd job
+on: push
+
+jobs:
+  Testing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+    
+  
