@@ -9,7 +9,7 @@ jobs:
         uses: actions/checkout@v4
     
       - name: testbuild
-        run : mvn install
+        run : mvn clean install
       - name: test
         run: mvn test
       - name: Login to Docker Hub
