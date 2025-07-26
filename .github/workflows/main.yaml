@@ -35,6 +35,7 @@ jobs:
         with:
          method: kubeconfig
          kubeconfig: ${{ secrets.KUBECONFIG }}
+         decode-kubeconfig: true
       - name: Deploy to Kubernetes
         run: |
         
