@@ -38,6 +38,8 @@ jobs:
          namespace: 'default'
       - name: Deploy to Kubernetes
         run: |
+         echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
           kubectl apply -f kubernetes/deployment.yaml
           kubectl apply -f kubernetes/service.yaml
       
