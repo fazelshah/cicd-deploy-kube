@@ -3,7 +3,7 @@ on: push
 
 jobs:
   Testing:
-    runs-on: myrunner
+    runs-on: runner1
     steps:
       - name: Code checkout
         uses: actions/checkout@v4
@@ -15,7 +15,7 @@ jobs:
       - name: test
         run: mvn test
   Build:
-     runs-on: myrunner
+     runs-on: runner1
      needs: Testing
      steps:
       - name: Code checkout
@@ -38,7 +38,7 @@ jobs:
           push: true
           tags: ${{ vars.DOCKERUSERNAME }}/cicd:${{ github.sha }}
   Deploy:
-      runs-on: myrunner
+      runs-on: runner1
       needs: Build
       steps:
       - name: Code checkout
