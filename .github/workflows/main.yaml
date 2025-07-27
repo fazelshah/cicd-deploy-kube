@@ -14,6 +14,11 @@ jobs:
         run : mvn clean install
       - name: test
         run: mvn test
+      - uses: actions/download-artifact@v4
+        with:
+         name: /target/vprofile-v2.war
+      - name: Display structure of downloaded files
+        run: ls -R
   Build:
      runs-on: runner1
      needs: Testing
