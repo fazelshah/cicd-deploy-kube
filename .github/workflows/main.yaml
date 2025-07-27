@@ -7,7 +7,8 @@ jobs:
     steps:
       - name: Code checkout
         uses: actions/checkout@v4
-      
+      - name: install mvn
+        run : apt install mvn -y
       
       - name: testbuild
         run : mvn clean install
