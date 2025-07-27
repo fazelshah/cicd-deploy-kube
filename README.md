@@ -1,7 +1,7 @@
 ## Prerequisites
-- JDK 1.8 or later
-- Maven 3 or later
-- Github Actions...........
+One server running kubernetes,Docker
+Make existing server as self hosted runner
+
 
 
 
