@@ -2,11 +2,17 @@ name: deploy to lambda
 
 on:
   push:
-    tags:
-      - '1.*'
     branches:
-      - master
-  workflow_dispatch:   # 👈 allows manual trigger from GitHub UI
+      - master      # 👈 auto-deploy for dev only
+  workflow_dispatch:   # 👈 manual trigger for prod/prod-eu
+    inputs:
+      environment:
+        description: "Choose environment to deploy"
+        required: true
+        type: choice
+        options:
+          - prod
+          - prod-eu
 
 jobs:
   deploy-lambda:
@@ -29,7 +35,7 @@ jobs:
         with:
           args: zip -qq -r ./bundle.zip ./
 
-      # ✅ Dev deploy (only on master branch)
+      # ✅ Dev deploy (auto on master push)
       - name: deploy to dev
         if: github.ref == 'refs/heads/master'
         uses: appleboy/lambda-action@master
@@ -40,9 +46,9 @@ jobs:
           function_name: cryptlexReleaseHandlerDev
           zip_file: bundle.zip
 
-      # ✅ Prod deploy (only when pushing tag "1.*")
+      # ✅ Prod deploy (manual trigger only)
       - name: deploy to prod
-        if: startsWith(github.ref, 'refs/tags/1.')
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
         uses: appleboy/lambda-action@master
         with:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -51,13 +57,13 @@ jobs:
           function_name: CryptlexReleaseHandler
           zip_file: bundle.zip
 
-      # ✅ Prod EU deploy (only when pushing tag "1.*")
+      # ✅ Prod EU deploy (manual trigger only)
       - name: deploy to prod EU
-        if: startsWith(github.ref, 'refs/tags/1.')
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod-eu'
         uses: appleboy/lambda-action@master
         with:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: eu-central-1   # 👈 assuming EU deployment should be in Frankfurt
+          aws_region: eu-central-1   # 👈 change if different EU region
           function_name: cryptlexReleaseHandlerEU
           zip_file: bundle.zip
