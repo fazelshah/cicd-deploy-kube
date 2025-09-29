@@ -32,7 +32,7 @@ jobs:
       - name: Prepare dist folder
         run: |
           mkdir -p dist
-          cp -r . dist/
+          cp -r ./* dist/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -61,4 +61,5 @@ jobs:
         with:
           function-name: cryptlexReleaseHandlerEU
           code-artifacts-dir: dist
+
 
