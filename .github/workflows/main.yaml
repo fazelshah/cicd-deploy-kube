@@ -29,10 +29,15 @@ jobs:
       - name: npm install and build
         run: npm ci 
 
-      - name: Zip lambda bundle
-        uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r -j bundle.zip dist
+      - name: Prepare dist folder
+        run: |
+         mkdir -p dist
+         rsync -av \
+         --exclude 'dist' \
+         --exclude '.git*' \
+         --exclude '.github' \
+         --exclude 'README.md' \
+         ./ dist/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -61,6 +66,7 @@ jobs:
         with:
           function-name: cryptlexReleaseHandlerEU
           code-artifacts-dir: dist
+
 
 
 
