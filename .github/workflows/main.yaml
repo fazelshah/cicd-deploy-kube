@@ -19,7 +19,7 @@ jobs:
     name: build and deploy lambda
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -27,45 +27,39 @@ jobs:
           node-version: 22.x
 
       - name: npm install and build
-        run: npm ci
+        run: npm ci && npm run build
 
-      - name: zip
-        uses: montudor/action-zip@v0.1.0
-        with:
-          args: zip -qq -r ./bundle.zip ./
+     
+      - name: Prepare dist folder
+        run: |
+          mkdir -p dist
+          cp -r * dist/
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-        
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-
- 
       - name: Deploy to dev
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerDev
-          zip-file: bundle.zip
+          code-artifacts-dir: ./dist
 
-     
       - name: Deploy to prod US
         if: github.event_name == 'workflow_dispatch' && inputs.environment == 'US'
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: CryptlexReleaseHandler
-          zip-file: bundle.zip
+          code-artifacts-dir: ./dist
 
-     
       - name: Deploy to prod EU
         if: github.event_name == 'workflow_dispatch' && inputs.environment == 'EU'
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerEU
-          zip-file: bundle.zip
-
-
-
-
+          code-artifacts-dir: ./dist
+          
