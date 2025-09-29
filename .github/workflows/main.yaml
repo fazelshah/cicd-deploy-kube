@@ -2,13 +2,13 @@ name: deploy to lambda
 
 on:
   push:
-    branches: [ master ]   # auto deploy to dev on push
-  workflow_dispatch:        # manual trigger for prod deploy
+    branches: [ master ]   # auto deploy to dev
+  workflow_dispatch:        # manual deploy for prod
     inputs:
       environment:
         description: "Select environment to deploy"
         required: true
-        default: "eu"
+        default: "us"
         type: choice
         options:
           - us
@@ -30,11 +30,10 @@ jobs:
         run: npm ci
 
       - name: Create zip bundle
-        run: |
-          zip -qq -r ./bundle.zip ./
+        run: zip -qq -r ./bundle.zip ./
 
       - name: Upload bundle as artifact
-        uses: actions/upload-artifact@v4   # ✅ updated
+        uses: actions/upload-artifact@v4
         with:
           name: bundle
           path: bundle.zip
@@ -45,7 +44,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4   # ✅ updated
+      - uses: actions/download-artifact@v4
         with:
           name: bundle
 
@@ -56,60 +55,35 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Deploy Lambda (Dev)
-        uses: aws-actions/aws-lambda-deploy@v1   # ✅ replaced
+      - name: Deploy Lambda Function (Dev)
+        uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerDev
           code: bundle.zip
           runtime: nodejs22.x
           handler: index.handler
 
-  deploy-prod-us:
-    name: Deploy to Prod (US)
+  deploy-prod:
+    name: Deploy to Prod
     needs: build
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'us'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4   # ✅ updated
+      - uses: actions/download-artifact@v4
         with:
           name: bundle
 
-      - name: Configure AWS credentials (Prod US)
+      - name: Configure AWS credentials (Prod)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ github.event.inputs.environment == 'eu' && 'eu-west-1' || 'us-east-1' }}
 
-      - name: Deploy Lambda (Prod US)
-        uses: aws-actions/aws-lambda-deploy@v1   # ✅ replaced
+      - name: Deploy Lambda Function (Prod)
+        uses: aws-actions/aws-lambda-deploy@v1
         with:
-          function-name: CryptlexReleaseHandler
-          code: bundle.zip
-          runtime: nodejs22.x
-          handler: index.handler
-
-  deploy-prod-eu:
-    name: Deploy to Prod (EU)
-    needs: build
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'eu'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4   # ✅ updated
-        with:
-          name: bundle
-
-      - name: Configure AWS credentials (Prod EU)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-
-      - name: Deploy Lambda (Prod EU)
-        uses: aws-actions/aws-lambda-deploy@v1   # ✅ replaced
-        with:
-          function-name: cryptlexReleaseHandlerEU
+          function-name: ${{ github.event.inputs.environment == 'eu' && 'cryptlexReleaseHandlerEU' || 'CryptlexReleaseHandler' }}
           code: bundle.zip
           runtime: nodejs22.x
           handler: index.handler
