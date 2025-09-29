@@ -44,14 +44,14 @@ jobs:
 
       - name: Deploy to dev
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: aws-actions/aws-lambda-deploy@v1.4.0
+        uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerDev
           zip-file: ./bundle.zip
 
       - name: Deploy to prod US
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'US'
-        uses: aws-actions/aws-lambda-deploy@v1.4.0
+        uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: CryptlexReleaseHandler
           zip-file: ./bundle.zip
@@ -59,8 +59,9 @@ jobs:
 
       - name: Deploy to prod EU
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'EU'
-        uses: aws-actions/aws-lambda-deploy@v1.4.0
+        uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerEU
           zip-file: ./bundle.zip
           
+
