@@ -1,9 +1,8 @@
 name: deploy to lambda
 on:
   push:
-    tags: ['1.*']
     branches: [ master ]
-    
+  workflow_dispatch:  
 jobs:
   deploy-lambda:
     name: build and deploy lambda
@@ -53,3 +52,4 @@ jobs:
           aws_region: us-east-1
           function_name: cryptlexReleaseHandlerEU
           zip_file: bundle.zip
+
