@@ -2,8 +2,8 @@ name: deploy to lambda
 
 on:
   push:
-    branches: [ master ]   # auto deploy to dev
-  workflow_dispatch:        # manual deploy for prod
+    branches: [ master ]   # auto deploy Dev
+  workflow_dispatch:        # manual deploy Prod
     inputs:
       environment:
         description: "Select environment to deploy"
@@ -19,22 +19,32 @@ jobs:
     name: Build and Deploy Lambda
     runs-on: ubuntu-latest
     steps:
+      # Checkout code
       - uses: actions/checkout@v3
 
+      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 22.x
 
+      # Install dependencies
       - name: Install dependencies and build
-        run: npm install   # use npm ci if package-lock.json exists
+        run: npm install   # use npm ci if you commit package-lock.json
 
-      - name: Prepare dist folder
+      # Create bundle.zip
+      - name: Zip source
+        run: zip -qq -r ./bundle.zip ./
+
+      # Unzip bundle into dist/
+      - name: Unzip bundle
         run: |
           mkdir -p dist
-          cp -r . dist/
+          unzip bundle.zip -d dist
 
-      # Deploy Dev automatically on master branch
+      # ======================
+      # Deploy to Dev (on push)
+      # ======================
       - name: Configure AWS credentials (Dev)
         if: github.ref == 'refs/heads/master'
         uses: aws-actions/configure-aws-credentials@v4
@@ -52,7 +62,9 @@ jobs:
           runtime: nodejs22.x
           handler: index.handler
 
-      # Deploy Prod manually via workflow_dispatch
+      # ======================
+      # Deploy to Prod (manual)
+      # ======================
       - name: Configure AWS credentials (Prod)
         if: github.event_name == 'workflow_dispatch'
         uses: aws-actions/configure-aws-credentials@v4
