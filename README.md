@@ -1,9 +1,2 @@
-## Prerequisites
-One server running kubernetes,Docker
-Make existing server as self hosted runner
-
-
-
-
-
-
+# cryptlex-release-lambda
+Cryptlex Release Lambda
