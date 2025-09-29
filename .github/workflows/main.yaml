@@ -2,8 +2,8 @@ name: deploy to lambda
 
 on:
   push:
-    branches: [ master ]   # auto deploy to dev
-  workflow_dispatch:        # manual deploy for prod
+    branches: [ master ]   
+  workflow_dispatch:        
     inputs:
       environment:
         description: "Select environment to deploy"
@@ -87,3 +87,4 @@ jobs:
           code: bundle.zip
           runtime: nodejs22.x
           handler: index.handler
+
