@@ -48,7 +48,7 @@ jobs:
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerDev
-          code-artifacts-dir: ./dist
+          zip-file: ./dist/bundle.zip
 
      
       - name: Deploy to prod US
@@ -56,7 +56,7 @@ jobs:
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: CryptlexReleaseHandler
-          code-artifacts-dir: ./dist
+          zip-file: ./dist/bundle.zip
 
      
       - name: Deploy to prod EU
@@ -64,6 +64,7 @@ jobs:
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerEU
-          code-artifacts-dir: ./dist
+          zip-file: ./dist/bundle.zip
+
 
 
