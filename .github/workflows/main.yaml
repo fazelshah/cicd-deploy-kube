@@ -29,11 +29,11 @@ jobs:
       - name: npm install and build
         run: npm ci 
 
-      - name: Package lambda
+      - name: Prepare dist folder
         run: |
           mkdir -p dist
-          cp -r index.js package.json node_modules dist/
-          cd dist && zip -r ../bundle.zip .
+          cp index.js package.json dist/
+          cp -r node_modules dist/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -47,21 +47,18 @@ jobs:
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerDev
-          zip-file: ./bundle.zip
+          code-artifacts-dir: dist
 
       - name: Deploy to prod US
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'US'
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: CryptlexReleaseHandler
-          zip-file: ./bundle.zip
-          
+          code-artifacts-dir: dist
 
       - name: Deploy to prod EU
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'EU'
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerEU
-          zip-file: ./bundle.zip
-          
-
+          code-artifacts-dir: dist
