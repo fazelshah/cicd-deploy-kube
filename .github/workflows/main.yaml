@@ -1,90 +1,55 @@
 name: deploy to lambda
-
 on:
   push:
-    branches: [ master ]   
-  workflow_dispatch:        
-    inputs:
-      environment:
-        description: "Select environment to deploy"
-        required: true
-        default: "us"
-        type: choice
-        options:
-          - us
-          - eu
-
+    tags: ['1.*']
+    branches: [ master ]
+    
 jobs:
-  build:
-    name: Build and Package
+  deploy-lambda:
+    name: build and deploy lambda
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v1
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 22.x
 
-      - name: Install dependencies and build
+      - name: npm install and build
         run: npm ci
 
-      - name: Create zip bundle
-        run: zip -qq -r ./bundle.zip ./
-
-      - name: Upload bundle as artifact
-        uses: actions/upload-artifact@v4
+      - name: zip
+        uses: montudor/action-zip@v0.1.0
         with:
-          name: bundle
-          path: bundle.zip
+          args: zip -qq -r ./bundle.zip ./
 
-  deploy-dev:
-    name: Deploy to Dev
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
+      - name: deploy to dev
+        if: github.ref == 'refs/heads/master'
+        uses: appleboy/lambda-action@master
         with:
-          name: bundle
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          function_name: cryptlexReleaseHandlerDev
+          zip_file: bundle.zip
 
-      - name: Configure AWS credentials (Dev)
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: deploy to prod
+        if: contains(github.ref, '1.')
+        uses: appleboy/lambda-action@master
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          function_name: CryptlexReleaseHandler
+          zip_file: bundle.zip
 
-      - name: Deploy Lambda Function (Dev)
-        uses: aws-actions/aws-lambda-deploy@v1
+      - name: deploy to prod EU
+        if: contains(github.ref, '1.')
+        uses: appleboy/lambda-action@master
         with:
-          function-name: cryptlexReleaseHandlerDev
-          code: bundle.zip
-          runtime: nodejs22.x
-          handler: index.handler
-
-  deploy-prod:
-    name: Deploy to Prod
-    needs: build
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: bundle
-
-      - name: Configure AWS credentials (Prod)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ github.event.inputs.environment == 'eu' && 'eu-west-1' || 'us-east-1' }}
-
-      - name: Deploy Lambda Function (Prod)
-        uses: aws-actions/aws-lambda-deploy@v1
-        with:
-          function-name: ${{ github.event.inputs.environment == 'eu' && 'cryptlexReleaseHandlerEU' || 'CryptlexReleaseHandler' }}
-          code: bundle.zip
-          runtime: nodejs22.x
-          handler: index.handler
-
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          function_name: cryptlexReleaseHandlerEU
+          zip_file: bundle.zip
