@@ -27,7 +27,7 @@ jobs:
           node-version: 22.x
 
       - name: npm install and build
-        run: npm ci && npm run build
+        run: npm ci 
 
      
       - name: Prepare dist folder
@@ -63,3 +63,4 @@ jobs:
           function-name: cryptlexReleaseHandlerEU
           code-artifacts-dir: ./dist
           
+
