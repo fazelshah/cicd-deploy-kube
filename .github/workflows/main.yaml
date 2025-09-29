@@ -2,23 +2,24 @@ name: deploy to lambda
 
 on:
   push:
-    branches:
-      - master      # 👈 auto-deploy for dev only
-  workflow_dispatch:   # 👈 manual trigger for prod/prod-eu
+    branches: [ master ]   # auto deploy to dev on push
+  workflow_dispatch:        # manual trigger for prod deploy
     inputs:
       environment:
-        description: "Choose environment to deploy"
+        description: "Select environment to deploy"
         required: true
+        default: "eu"
         type: choice
         options:
-          - prod
-          - prod-eu
+          - us
+          - eu
 
 jobs:
-  deploy-lambda:
-    name: build and deploy lambda
+  build:
+    name: Build and Package
     runs-on: ubuntu-latest
-
+    outputs:
+      bundle: ${{ steps.upload.outputs.artifact_url }}
     steps:
       - uses: actions/checkout@v3
 
@@ -27,17 +28,32 @@ jobs:
         with:
           node-version: 22.x
 
-      - name: npm install and build
+      - name: Install dependencies and build
         run: npm ci
 
-      - name: zip
+      - name: Create zip bundle
         uses: montudor/action-zip@v0.1.0
         with:
           args: zip -qq -r ./bundle.zip ./
 
-      # ✅ Dev deploy (auto on master push)
-      - name: deploy to dev
-        if: github.ref == 'refs/heads/master'
+      - name: Upload bundle as artifact
+        id: upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: bundle
+          path: bundle.zip
+
+  deploy-dev:
+    name: Deploy to Dev
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: bundle
+
+      - name: Deploy Lambda (Dev)
         uses: appleboy/lambda-action@master
         with:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -46,9 +62,17 @@ jobs:
           function_name: cryptlexReleaseHandlerDev
           zip_file: bundle.zip
 
-      # ✅ Prod deploy (manual trigger only)
-      - name: deploy to prod
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+  deploy-prod-us:
+    name: Deploy to Prod (US)
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'us'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: bundle
+
+      - name: Deploy Lambda (Prod US)
         uses: appleboy/lambda-action@master
         with:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -57,13 +81,21 @@ jobs:
           function_name: CryptlexReleaseHandler
           zip_file: bundle.zip
 
-      # ✅ Prod EU deploy (manual trigger only)
-      - name: deploy to prod EU
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod-eu'
+  deploy-prod-eu:
+    name: Deploy to Prod (EU)
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'eu'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: bundle
+
+      - name: Deploy Lambda (Prod EU)
         uses: appleboy/lambda-action@master
         with:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: eu-central-1   # 👈 change if different EU region
+          aws_region: eu-west-1
           function_name: cryptlexReleaseHandlerEU
           zip_file: bundle.zip
