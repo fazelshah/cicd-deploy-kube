@@ -69,8 +69,8 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_LAMBDA_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_LAMBDA_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ github.event.inputs.environment == 'EU' && 'eu-west-1' || 'us-east-1' }}
 
       - name: Deploy Lambda (Prod)
@@ -81,3 +81,4 @@ jobs:
           code-artifacts-dir: dist
           runtime: nodejs22.x
           handler: index.handler
+
