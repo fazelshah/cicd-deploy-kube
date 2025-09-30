@@ -29,10 +29,12 @@ jobs:
       - name: npm install and build
         run: npm ci 
 
-      - name: Prepare dist folder (only js + json)
+      - name: Prepare dist folder 
         run: |
-          mkdir -p dist
-          cp *.json,*.js dist
+         mkdir -p dist
+         cp *.js *.json dist/ || true
+         cp -r node_modules dist/
+
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -61,6 +63,7 @@ jobs:
         with:
           function-name: cryptlexReleaseHandlerEU
           code-artifacts-dir: dist
+
 
 
 
