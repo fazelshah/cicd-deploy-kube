@@ -44,21 +44,22 @@ jobs:
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerDev
-          code-artifacts-dir: .
+          code-artifacts-dir: dist
 
       - name: Deploy to prod US
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'US'
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: CryptlexReleaseHandler
-          code-artifacts-dir: .
+          code-artifacts-dir: dist
 
       - name: Deploy to prod EU
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'EU'
         uses: aws-actions/aws-lambda-deploy@v1
         with:
           function-name: cryptlexReleaseHandlerEU
-          code-artifacts-dir: .
+          code-artifacts-dir: dist
+
 
 
 
