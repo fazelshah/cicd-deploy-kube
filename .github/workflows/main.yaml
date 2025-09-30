@@ -32,8 +32,8 @@ jobs:
       - name: Prepare dist folder
         run: |
          mkdir -p dist
-         shopt -s dotglob
-         cp -r * dist/
+         cp -r ./* dist/ || true
+         rm -rf dist/dist
 
 
       - name: Configure AWS credentials
@@ -63,6 +63,7 @@ jobs:
         with:
           function-name: cryptlexReleaseHandlerEU
           code-artifacts-dir: dist
+
 
 
 
